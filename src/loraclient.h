@@ -1,6 +1,7 @@
 #ifndef LORACLIENT_H
 #define LORACLIENT_H
 #include <string.h>
+#include <Arduino.h>
 
 
 enum reconfigurar {
@@ -8,20 +9,26 @@ enum reconfigurar {
   NOT_RECONF = 1
 };
 
+enum region {
+  AUSTRALIA = 1
+};
+
 struct loraClient {
-    char appeui[16];
-    char deveui[16];
-    char appkey[32];
+    char appeui[17];
+    char deveui[17];
+    char appkey[33];
     int intervalo_envio;
     int intervalo_desconectado;
     bool reconf;
+    int region;
 
-    loraClient(const char appeui[16], 
-               const char deveui[16], 
-               const char appkey[32], 
-               const char intervalo_envio[16], 
-               const char intervalo_desconectado[16], 
-               const char reconf[16]);
+    loraClient(const char appeui[17], 
+               const char deveui[17], 
+               const char appkey[33], 
+               const char intervalo_envio[17], 
+               const char intervalo_desconectado[17], 
+               const char reconf[17], 
+               const char region[17]);
 
     const char* getAppeui();
     const char* getDeveui();
@@ -29,14 +36,16 @@ struct loraClient {
     const int getIntervaloEnvio();
     const int getIntervaloDesconectado();
     const bool getReconfigurar();
+    const int getRegion();
 
 private:
-    void setAppeui(const char appeui[16]);
-    void setDeveui(const char deveui[16]);
-    void setAppkey(const char appkey[32]);
-    void setIntervaloEnvio(const char intervalo_envio[16]);
-    void setIntervaloDesconectado(const char intervalo_desconectado[16]);
-    void setReconfigurar(const char reconf[16]);
+    void setAppeui(const char appeui[17]);
+    void setDeveui(const char deveui[17]);
+    void setAppkey(const char appkey[33]);
+    void setIntervaloEnvio(const char intervalo_envio[17]);
+    void setIntervaloDesconectado(const char intervalo_desconectado[17]);
+    void setReconfigurar(const char reconf[17]);
+    void setRegion(const char region[17]);
 };
 
 #endif

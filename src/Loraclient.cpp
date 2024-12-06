@@ -1,6 +1,12 @@
 #include "loraclient.h"
 
-loraClient::loraClient(const char appeui[16], const char deveui[16], const char appkey[32], const char intervalo_envio[16], const char intervalo_desconectado[16], const char reconf[16])
+loraClient::loraClient(const char appeui[17], 
+                       const char deveui[17], 
+                       const char appkey[33], 
+                       const char intervalo_envio[17], 
+                       const char intervalo_desconectado[17], 
+                       const char reconf[17], 
+                       const char region[17])
 {
     setAppeui(appeui);
     setDeveui(deveui);
@@ -8,29 +14,40 @@ loraClient::loraClient(const char appeui[16], const char deveui[16], const char 
     setIntervaloEnvio(intervalo_envio);
     setIntervaloDesconectado(intervalo_desconectado);
     setReconfigurar(reconf);
+    setRegion(region);
 }
 
-void loraClient::setAppeui(const char appeui[16]) {
-    memcpy(this->appeui, appeui, 16);
+void loraClient::setAppeui(const char appeui[17]) {
+    memcpy(this->appeui, appeui, 17);
 }
 
-void loraClient::setDeveui(const char deveui[16]) {
-    memcpy(this->deveui, deveui, 16);
+void loraClient::setDeveui(const char deveui[17]) {
+    memcpy(this->deveui, deveui, 17);
 }
-void loraClient::setAppkey(const char appkey[32]){
-    memcpy(this->appkey, appkey, 32);
+void loraClient::setAppkey(const char appkey[33]){
+    memcpy(this->appkey, appkey, 33);
 }
-void loraClient::setIntervaloEnvio(const char intervalo_envio[16]) {
+void loraClient::setIntervaloEnvio(const char intervalo_envio[17]) {
     this->intervalo_envio = atoi(intervalo_envio) * 1000;
 }
-void loraClient::setIntervaloDesconectado(const char intervalo_desconectado[16]) {
+void loraClient::setIntervaloDesconectado(const char intervalo_desconectado[17]) {
     this->intervalo_desconectado = atoi(intervalo_desconectado) * 1000;
 }
-void loraClient::setReconfigurar(const char reconf[16]) {
-    if (strcmp(reconf, "RECONF") == 0) {
+void loraClient::setReconfigurar(const char reconf[17]) {
+    int tmp = atoi(reconf);
+
+    if (tmp == reconfigurar::RECONF) {
         this->reconf = true;
     } else {
         this->reconf = false;
+    }
+}
+
+void loraClient::setRegion(const char region[17]) {
+    int tmp = atoi(region);
+
+    if (tmp == region::AUSTRALIA) {
+        this->region = region::AUSTRALIA;
     }
 }
 
@@ -57,4 +74,10 @@ const int loraClient::getIntervaloDesconectado() {
 const bool loraClient::getReconfigurar() {
     return this->reconf;
 }
+
+const int loraClient::getRegion() {
+    return this->region;
+}
+
+
 
