@@ -43,11 +43,13 @@ void loraClient::setReconfigurar(const char reconf[17]) {
     }
 }
 
-void loraClient::setRegion(const char region[17]) {
-    int tmp = atoi(region);
+void loraClient::setRegion(const char reg[17]) {
+    int tmp = atoi(reg);
 
     if (tmp == region::AUSTRALIA) {
         this->region = region::AUSTRALIA;
+
+        this->regionChannels = new RegionChannels(8, 15, region::AUSTRALIA);
     }
 }
 
@@ -77,6 +79,10 @@ const bool loraClient::getReconfigurar() {
 
 const int loraClient::getRegion() {
     return this->region;
+}
+
+const bool loraClient::getChannel(int index) {
+    return this->regionChannels->getChannel(index);
 }
 
 
