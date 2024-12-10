@@ -5,9 +5,6 @@ from folium.plugins import HeatMap
 from streamlit_folium import st_folium
 
 # Título da aplicação
-st.title("Mapa de Calor Interativo com Streamlit e Folium")
-
-
 # Ler o arquivo CSV
 data = pd.read_csv('data/mapa.csv')
 
@@ -17,7 +14,7 @@ if all(col in data.columns for col in ['latitude', 'longitude', 'rssi']):
     heat_data = [[row['latitude'], row['longitude'], row['rssi']] for index, row in data.iterrows()]
 
     # Criar o mapa centrado em uma localização específica
-    mapa = folium.Map(location=[-27.608121, -48.632408], zoom_start=20)
+    mapa = folium.Map(location=[-27.6035,-48.619], zoom_start=14)
 
     # Adicionar o HeatMap ao mapa
     HeatMap(heat_data).add_to(mapa)
