@@ -22,149 +22,104 @@ loraClient lc(appeui,
               regiao);
 
 
-void cliDebug(loraClient loraClient){
-    Serial.println("Configurações do módulo LoRa:");
-    Serial.print("AppEUI: ");
-    Serial.println(loraClient.getAppeui());
-    Serial.print("DevEUI: ");
-    Serial.println(loraClient.getDeveui());
-    Serial.print("AppKey: ");
-    Serial.println(loraClient.getAppkey());
-    Serial.print("Intervalo de envio: ");
-    Serial.println(loraClient.getIntervaloEnvio());
-    Serial.print("Intervalo de desconexão: ");
-    Serial.println(loraClient.getIntervaloDesconectado());
-    Serial.print("Reconfigurar: ");
-    Serial.println(loraClient.getReconfigurar());
-    Serial.print("Região: ");
-    Serial.println(loraClient.getRegion());
+bool reconnect = false;
+void event_handler(Event type){ 
+  // Verifica se o modulo esta conectado e atualiza essa informacao
+  if(type == Event::JOINED){
+    Serial.println(F("Connected into the network!"));
+    reconnect = true;
+  }
+}
 
-    // imprime os canais de envio
-    Serial.println("Canais de envio:");
-    for (int i = 0; i < 72; i++){
-      if (lc.getChannel(i)){
-        Serial.print("Canal ");
-        Serial.print(i);
-        Serial.println("habilitado");
-      }
+// Função para escrever dados no módulo LoRa e ficar aguardando a resposta, ao receber, imprime a resposta no Serial Monitor
+void writeAndWaitResponse(const char *command) {
+  Serial.write(command);
+  LoRaSerial.print(command);
+  LoRaSerial.print("\n");
+  unsigned long timeout = millis() + 1000;
+  while (millis() < timeout) {
+    if (LoRaSerial.available()) {
+      Serial.write(LoRaSerial.read());
     }
+  }
+}
 
+void loraDebug(){
+  // Verifica a região de operação do módulo LoRa
+  Serial.println(F("Validating the region of the LoRa module: "));
+  writeAndWaitResponse("AT+REGION");
+
+  // Verificando os canais de envio configurados
+  Serial.println(F("Validating the configured sending channels: "));
+  writeAndWaitResponse("AT+CH");  
+
+   // Verifica o Device EUI usando a função writeAndWaitResponse
+  Serial.print(F("Validating the Device EUI "));
+  writeAndWaitResponse("AT+DEVEUI");
+
+  // Verifica o Application EUI usando a função writeAndWaitResponse
+  Serial.print(F("Validating the Application EUI: "));
+  writeAndWaitResponse("AT+APPEUI");
+
+  // Verifica o Application Key usando a função writeAndWaitResponse
+  Serial.print(F("Validating the Application Key: "));
+  writeAndWaitResponse("AT+APPKEY");
 }
 
 void canalReconfig(){
-    Serial.println(F("Reconfigurando os canais de envio..."));
-    // imprime os canais de envio
+  Serial.println();
+  Serial.println(F("Reconfiguring the sending region..."));
+
+  // Configurando a região de operação do módulo LoRa
+  char region[32];
+  sprintf(region, "AT+REGION %d\n", lc.getRegion());
+  writeAndWaitResponse(region);
+  
+  Serial.println();
+  Serial.println(F("Reconfiguring the sending channels..."));  
 
     int i = 0;
-    unsigned long reconecta = TEMPO_ENVIO; // 1 segundos
+    unsigned long reconecta = TEMPO_ENVIO;
     while (i < 72){
-        // //Recebe as informacoes do modulo e exibe no monitor serial
-        if (LoRaSerial.available()){
-          Serial.write(LoRaSerial.read());
-        }
-
         char channel[21];
         if (reconecta < millis()){
           if(lc.getChannel(i)){
             sprintf(channel, "AT+CH %d status=1", i);
-            Serial.write(channel);
-            LoRaSerial.print(channel);
-            LoRaSerial.print("\n");
-            reconecta = millis() + TEMPO_AGUARDO;
+            writeAndWaitResponse(channel);
           } else {
             sprintf(channel, "AT+CH %d status=0", i);
-            Serial.write(channel);
-            LoRaSerial.print(channel);
-            LoRaSerial.print("\n");
-            reconecta = millis() + TEMPO_AGUARDO;
+            writeAndWaitResponse(channel);
           }
           i++;
         }
     }
 }
 
-void reconfig(){
-    Serial.println(F("Reconfigurando o módulo..."));
-
-    // Configuração da região
-    if (LoRaSerial.available()){
-      Serial.write(LoRaSerial.read());
-    }
-    char region[16];
-    sprintf(region, "AT+REGION %d\n", lc.getRegion());
-    Serial.write(region); 
-
-    // Configuração da DevEUI
-    if (LoRaSerial.available()){
-      Serial.write(LoRaSerial.read());
-    }
-    char deveui[32];
-    sprintf(deveui, "AT+DEVEUI %s\n", lc.getDeveui());
-    Serial.write(deveui);   
-
-}
-
 void loraConfig(){
-  Serial.print(F("Verificando o Device EUI: "));
-  Serial.write((uint8_t *)lc.getDeveui(), 16);
   Serial.println();
+  Serial.println(F("Configuring the LoRa module..."));
 
-  char deveui[16];
-  resposta = lorawan.get_DevEUI(deveui);
-  if(resposta == CommandResponse::OK){
-    Serial.print(F("DevEUI: "));
-    Serial.write((uint8_t *)deveui, 16);
-    Serial.println();
-    Serial.println();
-  } else {
-    Serial.println(F("Erro ao obter o Device EUI"));
-  }
+  // Configurando o Device EUI usando a função writeAndWaitResponse
+  char deveuiset[32];
+  sprintf(deveuiset, "AT+DEVEUI %s\n", lc.getDeveui());
+  writeAndWaitResponse(deveuiset);
 
-  //Configura o Application EUI no modulo
-  Serial.print(F("Configurando o Application EUI: "));
-  Serial.write((uint8_t *)lc.getAppeui(), 16);
-  Serial.println();
+  // Configurando o Application EUI usando a função writeAndWaitResponse
+  char appeuiset[32];
+  sprintf(appeuiset, "AT+APPEUI %s\n", lc.getAppeui());
+  writeAndWaitResponse(appeuiset);
 
-  resposta = lorawan.set_AppEUI(lc.getAppeui());
-  if(resposta == CommandResponse::OK){
-    Serial.print(F("App EUI: "));
-    Serial.write((uint8_t *)lc.getAppeui(), 16);
-    Serial.println();
-    Serial.println();
-  } else {
-    Serial.println(F("Erro ao configurar o Application EUI"));
-  }
-
-  //Configura o Application Key no modulo
-  Serial.print(F("Configurando o Application Key: "));
-  Serial.write((uint8_t *)lc.getAppkey(), 32);
-  Serial.println();
-
-  resposta = lorawan.set_AppKey(lc.getAppkey());
-  if(resposta == CommandResponse::OK){
-    Serial.print(F("AppKey: "));
-    Serial.write((uint8_t *)lc.getAppkey(), 32);
-    Serial.println();
-    Serial.println();
-  } else {
-    Serial.println(F("Erro ao configurar o AppKey"));
-  }
-   
+  // Configurando o Application Key usando a função writeAndWaitResponse
+  char appkeyset[64];
+  sprintf(appkeyset, "AT+APPKEY %s\n", lc.getAppkey());
+  writeAndWaitResponse(appkeyset);
 }
-
-bool reconnect = false;
-void event_handler(Event type){ 
-  // Verifica se o modulo esta conectado e atualiza essa informacao
-  if(type == Event::JOINED){
-    Serial.println(F("\nConectado!"));
-    reconnect = true;
-  }
-}
-
 
 void setup() {
+  // Inicializando o pino 13 como saída para controle de LED
   pinMode(13, OUTPUT);
 
+  // Inicializando a comunicação serial.
   Serial.begin(115200);
 
   // Configuração do LoRaWAN
@@ -172,45 +127,43 @@ void setup() {
   lorawan.reset();
   LoRaSerial.begin(115200, SERIAL_8N1, RXD2, TXD2);
 
-  //  if (!lorawan.join()) {
-  //  Serial.println("Falha ao conectar no LoRaWAN!");
-  //  while (1);
-  //  }
-  
   // verifica se o módulo precisa ser reconfigurado 
-
   if (!lc.getReconfigurar()) {
-    // Altera os parâmetros básicos do módulo
-    reconfig();
-    // Configuração dos canais de envio
     canalReconfig();
+    loraConfig();
   }
 
-  // Configuração do evento de conexão
-  lorawan.event_listener = &event_handler;
-  Serial.println(F("\nEvento configurado."));
+  // Debug do módulo LoRa
+  loraDebug();
 
-  // Define demais parâmetros de configuração do módulo
-  loraConfig();
+  // Configuração do evento de conexão
+  Serial.println(F("Configuring the connection event..."));
+  lorawan.event_listener = &event_handler;
 
   resposta = lorawan.set_JoinMode(SMW_SX1276M0_JOIN_MODE_OTAA);
   if(resposta == CommandResponse::OK){
-    Serial.println(F("Metodo de Conexao Configurado como OTAA"));
+    Serial.println(F("Connection method configured as OTAA"));
   } else {
-    Serial.println(F("Erro ao configurar o metodo OTAA"));
+    Serial.println(F("Error configuring connection method as OTAA"));
   }
 
-  //Requisita conexao com a rede
-  Serial.println(F("Conectando a Rede...\n"));
-  lorawan.join();
-
+  // Requisita conexao com a rede
+  Serial.println(F("Connecting into the gateway..."));
+  writeAndWaitResponse("AT+JOIN");
 }
+
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  digitalWrite(13, LOW);
-  delay(500);
-  digitalWrite(13, HIGH);
+    static String inputBuffer = "";
 
-  // cliDebug(lc);
+    // Recebe dados via Serial e envia ao módulo LoRa usando a função writeAndWaitResponse
+    while (Serial.available()) {
+        char c = Serial.read();
+        inputBuffer += c;
+        if (c == '\n') { // Envia ao LoRa quando um comando completo é recebido
+            writeAndWaitResponse(inputBuffer.c_str());
+            inputBuffer = ""; // Limpa o buffer após enviar
+        }
+    }
 }
+
