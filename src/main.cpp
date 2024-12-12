@@ -44,26 +44,38 @@ void writeAndWaitResponse(const char *command) {
   }
 }
 
+// Função para escrever dados no módulo LoRa e ficar aguardando a resposta, ao receber, imprime a resposta no Serial Monitor
+void writeAndDebug(const char *command) {
+  LoRaSerial.print(command);
+  LoRaSerial.print("\n");
+  unsigned long timeout = millis() + 1000;
+  while (millis() < timeout) {
+    if (LoRaSerial.available()) {
+      Serial.write(LoRaSerial.read());
+    }
+  }
+}
+
 void loraDebug(){
   // Verifica a região de operação do módulo LoRa
   Serial.println(F("Validating the region of the LoRa module: "));
-  writeAndWaitResponse("AT+REGION");
+  writeAndDebug("AT+REGION");
 
   // Verificando os canais de envio configurados
   Serial.println(F("Validating the configured sending channels: "));
-  writeAndWaitResponse("AT+CH");  
+  writeAndDebug("AT+CH");  
 
-   // Verifica o Device EUI usando a função writeAndWaitResponse
-  Serial.print(F("Validating the Device EUI "));
-  writeAndWaitResponse("AT+DEVEUI");
+   // Verifica o Device EUI 
+  Serial.print(F("Validating the Device EUI: "));
+  writeAndDebug("AT+DEVEUI");
 
-  // Verifica o Application EUI usando a função writeAndWaitResponse
+  // Verifica o Application EUI 
   Serial.print(F("Validating the Application EUI: "));
-  writeAndWaitResponse("AT+APPEUI");
+  writeAndDebug("AT+APPEUI");
 
-  // Verifica o Application Key usando a função writeAndWaitResponse
+  // Verifica o Application Key 
   Serial.print(F("Validating the Application Key: "));
-  writeAndWaitResponse("AT+APPKEY");
+  writeAndDebug("AT+APPKEY");
 }
 
 void canalReconfig(){
