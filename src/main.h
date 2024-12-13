@@ -7,6 +7,8 @@
 #include <HardwareSerial.h>
 #include <sstream>
 #include "loraclient.h"
+#include "temperatureHumidity.h"
+#include "ldr.h"
 
 const char appeui[17] = "0000000000000000";
 const char appkey[33] = "9241B3D458A57D3758FDD1567344D77A";
