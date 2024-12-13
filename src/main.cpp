@@ -164,8 +164,9 @@ void setup() {
   writeAndWaitResponse("AT+JOIN");
 }
 
-
+int counter = 0;
 void loop() {
+
     static String inputBuffer = "";
 
     // Recebe dados via Serial e envia ao módulo LoRa usando a função writeAndWaitResponse
@@ -177,5 +178,13 @@ void loop() {
             inputBuffer = ""; // Limpa o buffer após enviar
         }
     }
+
+
+    delay(TEMPO_ENVIO*10);
+    // Escreve na ESP o valor 'AT+SENDB 2:FF00FF00FF00"
+
+    char send[32];
+    sprintf(send, "AT+SENDB 2:FF00FF00FF00");
+    writeAndWaitResponse(send);
 }
 

@@ -9,8 +9,8 @@
 #include "loraclient.h"
 
 const char appeui[17] = "0000000000000000";
-const char appkey[33] = "9241B3D458A57D3758FDD1567344D77A";
-const char deveui[17] = "50F8A500400103E3";
+const char appkey[33] = "CC4E93A7750B18AC902250ACC7075525";
+const char deveui[17] = "50F8A500300101AD";
 const char intervalo_envio[17] = "10";
 const char intervalo_desconectado[17] = "20";
 const char reconfigurar[17] = "1";
