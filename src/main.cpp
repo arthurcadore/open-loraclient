@@ -180,7 +180,12 @@ void loop() {
     }
 
 
-    delay(TEMPO_ENVIO*10);
+    delay(TEMPO_ENVIO*8);
+
+    digitalWrite(13, HIGH);
+    delay(1000);
+    digitalWrite(13, LOW);
+    delay(1000);
     // Escreve na ESP o valor 'AT+SENDB 2:FF00FF00FF00"
 
     char send[32];
