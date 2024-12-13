@@ -12,12 +12,6 @@ SMW_SX1276M0 lorawan(LoRaSerial);
 // Variável de reconfiguração do módulo
 CommandResponse resposta;
 
-// Instância do objeto TemperatureHumidity (DHT11)
-TemperatureHumidity tempHumiditySensor(12);
-
-// Instância do objeto LDR no pino analógico 34 (exemplo no ESP32)
-LDR ldrSensor(34);
-
 // Instancia do objeto loraClient
 loraClient lc(appeui, 
               deveui, 
@@ -168,73 +162,20 @@ void setup() {
   // Requisita conexao com a rede
   Serial.println(F("Connecting into the gateway..."));
   writeAndWaitResponse("AT+JOIN");
-
-  // Inicialização do sensor de temperatura e umidade
-  tempHumiditySensor.measureBaseTemperature();
-
-  // Configura o pino do sensor LDR
-  pinMode(34, INPUT);
-
-  Serial.println("Initializing LDR Sensor...");
-    
-  // Define o valor base inicial para comparação
-  ldrSensor.measureBaseValue();
-  Serial.print("Base Value Set: ");
-  Serial.println(ldrSensor.getBaseValue());
 }
+
 
 void loop() {
-  static unsigned long lastSendTime = 0;
-  const unsigned long sendInterval = 10000; // Intervalo de envio (10 segundos)
+    static String inputBuffer = "";
 
-  // Realiza medições e envia os dados pelo LoRa em intervalos
-  if (millis() - lastSendTime >= sendInterval) {
-      lastSendTime = millis();
-
-      // Realiza a medição do sensor de temperatura e umidade
-      tempHumiditySensor.measure();
-      float temperature = tempHumiditySensor.getCurrentTemperature();
-      float humidity = tempHumiditySensor.getCurrentHumidity();
-
-      // Realiza a leitura do LDR
-      ldrSensor.measure();
-      int ldrValue = ldrSensor.getCurrent();
-
-      // Monta a string com os dados coletados
-      char payload[128];
-      sprintf(payload, "Temperature: %.2f C, Humidity: %.2f %%, LDR: %d", 
-              temperature, humidity, ldrValue);
-
-      Serial.println(F("Sending payload:"));
-      Serial.println(payload);
-
-      // Envia o payload ao módulo LoRa
-      writeAndWaitResponse(payload);
-  }
-
-  // Exibe os valores do LDR no Monitor Serial (para debug)
-  ldrSensor.measure();
-  int currentValue = ldrSensor.getCurrent();
-
-  Serial.print("Current Value: ");
-  Serial.print(currentValue);
-  Serial.print(" | Base Value: ");
-  Serial.print(ldrSensor.getBaseValue());
-  
-  if (ldrSensor.getStatus()) {
-      Serial.println(" | Status: BELOW Threshold");
-  } else {
-      Serial.println(" | Status: ABOVE Threshold");
-  }
-
-  // Lê comandos da Serial e envia ao LoRa
-  static String inputBuffer = "";
-  while (Serial.available()) {
-      char c = Serial.read();
-      inputBuffer += c;
-      if (c == '\n') {
-          writeAndWaitResponse(inputBuffer.c_str());
-          inputBuffer = "";
-      }
-  }
+    // Recebe dados via Serial e envia ao módulo LoRa usando a função writeAndWaitResponse
+    while (Serial.available()) {
+        char c = Serial.read();
+        inputBuffer += c;
+        if (c == '\n') { // Envia ao LoRa quando um comando completo é recebido
+            writeAndWaitResponse(inputBuffer.c_str());
+            inputBuffer = ""; // Limpa o buffer após enviar
+        }
+    }
 }
+
